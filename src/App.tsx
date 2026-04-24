@@ -242,6 +242,7 @@ export default function App() {
   };
 
   const [showGuide, setShowGuide] = useState(false);
+  const [showGeminiModal, setShowGeminiModal] = useState(false);
 
   const onFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -282,6 +283,13 @@ export default function App() {
           <span className="font-mono text-sm uppercase tracking-widest bg-zinc-900 text-white px-3 py-1">
             Engine v1.02
           </span>
+          <button
+            onClick={() => setShowGeminiModal(true)}
+            className="font-mono text-xs uppercase tracking-widest bg-violet-600 text-white border-2 border-zinc-900 px-4 py-1 hover:bg-violet-500 transition-all flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            Gemini Gem
+          </button>
           <button
             onClick={() => setShowGuide(true)}
             className="font-mono text-xs uppercase tracking-widest border-2 border-zinc-900 px-4 py-1 hover:bg-zinc-100 transition-all flex items-center gap-2"
@@ -723,6 +731,99 @@ export default function App() {
               
               <div className="p-4 bg-yellow-300 border-t-4 border-zinc-900 font-black uppercase tracking-tight text-center text-sm italic">
                 NOTICE: API PERMISSION ERROR BYPASSED. USER-SIDE EXECUTION READY.
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Gemini Gem Guide Modal */}
+      <AnimatePresence>
+        {showGeminiModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-zinc-900/40 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white border-4 border-zinc-900 shadow-[12px_12px_0px_0px_rgba(24,24,27,1)] max-w-3xl w-full p-10 relative max-h-[90vh] overflow-y-auto"
+            >
+              <button 
+                onClick={() => setShowGeminiModal(false)}
+                className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-900 transition-colors"
+              >
+                <Plus className="w-8 h-8 rotate-45" />
+              </button>
+
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-16 h-16 bg-violet-100 border-4 border-zinc-900 flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-violet-600" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-black uppercase tracking-tight italic">Gemini Gem</h2>
+                  <p className="font-mono text-sm text-zinc-500">최고의 출제 위원 만들기</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <p className="text-lg leading-relaxed text-zinc-700">
+                  Google Gemini의 <strong>Gem(맞춤형 챗봇)</strong> 기능을 활용하면 이 앱과 완벽하게 호환되는 문제를 무한대로 생성할 수 있습니다. 아래 프롬프트를 복사하여 Gem 설정에 붙여넣으세요.
+                </p>
+
+                <div className="bg-zinc-50 border-2 border-zinc-900 p-6 relative group">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`[역할 정의]\n너는 사용자가 입력한 학습 자료나 텍스트를 기반으로, Google Form 자동 생성 프로그램인 'Form:Magic'의 **로컬 파싱 규격(Local Sync Format)**에 맞게 문제를 생성하는 전문 출제 위원이다.\n\n[출력 규칙 - 반드시 준수]\n문제 구분: 문제와 문제 사이에는 반드시 한 줄의 빈 줄을 둔다.\n문제 제목: 문제 번호 뒤에 제목을 쓴다. (예: 1. 다음 중...)\n보기 형식: 각 보기는 A), B), C), D) 형식을 사용하며 줄바꿈으로 구분한다.\n정답 표시: 반드시 정답: 키워드로 시작한다.\n해설 표시: 반드시 해설: 키워드로 시작한다.\n배점 표시: 반드시 배점: 키워드로 시작하며 숫자만 적는다.\n금지 사항: 서론, 결론, "네 알겠습니다" 등의 인사말은 일절 생략하고 문제 데이터만 출력한다.\n\n[출력 양식 예시]\n1. 대한민국에서 가장 높은 산은 어디입니까?\nA) 설악산\nB) 한라산\nC) 지리산\nD) 북한산\n정답: B\n해설: 한라산은 높이 1,947m로 대한민국에서 가장 높은 산입니다.\n배점: 10\n\n2. 다음 중 전기를 통하지 않는 재료(절연체)를 고르세요.\nA) 구리\nB) 알루미늄\nC) 고무\nD) 철\n정답: C\n해설: 고무는 전기가 흐르지 않는 대표적인 절연체입니다.\n배점: 10`);
+                      setSuccessMessage("프롬프트가 복사되었습니다!");
+                      setTimeout(() => setSuccessMessage(null), 2000);
+                    }}
+                    className="absolute top-4 right-4 bg-zinc-900 text-white font-mono text-xs px-3 py-1 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Copy className="w-3 h-3" />
+                    COPY PROMPT
+                  </button>
+                  <pre className="whitespace-pre-wrap font-mono text-xs text-zinc-600 leading-relaxed">
+{`[역할 정의]
+너는 사용자가 입력한 학습 자료나 텍스트를 기반으로, Google Form 자동 생성 프로그램인 'Form:Magic'의 **로컬 파싱 규격(Local Sync Format)**에 맞게 문제를 생성하는 전문 출제 위원이다.
+
+[출력 규칙 - 반드시 준수]
+문제 구분: 문제와 문제 사이에는 반드시 한 줄의 빈 줄을 둔다.
+문제 제목: 문제 번호 뒤에 제목을 쓴다. (예: 1. 다음 중...)
+보기 형식: 각 보기는 A), B), C), D) 형식을 사용하며 줄바꿈으로 구분한다.
+정답 표시: 반드시 정답: 키워드로 시작한다.
+해설 표시: 반드시 해설: 키워드로 시작한다.
+배점 표시: 반드시 배점: 키워드로 시작하며 숫자만 적는다.
+금지 사항: 서론, 결론, "네 알겠습니다" 등의 인사말은 일절 생략하고 문제 데이터만 출력한다.
+
+[출력 양식 예시]
+1. 대한민국에서 가장 높은 산은 어디입니까?
+A) 설악산
+B) 한라산
+C) 지리산
+D) 북한산
+정답: B
+해설: 한라산은 높이 1,947m로 대한민국에서 가장 높은 산입니다.
+배점: 10
+
+2. 다음 중 전기를 통하지 않는 재료(절연체)를 고르세요.
+A) 구리
+B) 알루미늄
+C) 고무
+D) 철
+정답: C
+해설: 고무는 전기가 흐르지 않는 대표적인 절연체입니다.
+배점: 10`}
+                  </pre>
+                </div>
+
+                <div className="bg-emerald-50 border-2 border-emerald-500 p-6">
+                  <h3 className="font-black uppercase tracking-tight text-emerald-800 mb-2">🔥 How to use (최강의 활용법)</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm text-emerald-900">
+                    <li>위 프롬프트를 <strong>Gemini Gem</strong>에 저장합니다.</li>
+                    <li>교과서 텍스트나 PDF 내용을 복사해서 Gem에게 줍니다.</li>
+                    <li>Gem이 출력한 <strong>모든 텍스트를 드래그해서 복사</strong>합니다.</li>
+                    <li>이 앱 메인 화면의 텍스트 박스에 붙여넣고 <strong>LOCAL SYNC</strong>를 누릅니다!</li>
+                  </ol>
+                </div>
               </div>
             </motion.div>
           </div>
