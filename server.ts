@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import { google } from "googleapis";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
+import { GoogleGenAI, Type } from "@google/genai";
 
 dotenv.config();
 
@@ -264,11 +265,74 @@ app.get("/api/forms/import/:formId", async (req, res) => {
   }
 });
 
-// Endpoint to provide client-side config at runtime
-app.get("/api/config", (req, res) => {
-  res.json({
-    GEMINI_API_KEY: process.env.GEMINI_API_KEY
-  });
+// Endpoint to securely parse text using Gemini AI
+app.post("/api/ai/parse", async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "No text provided" });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: "Server missing Gemini API Key" });
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `
+        Extract study questions from the following text. 
+        For each question, provide:
+        1. A clear title/question text.
+        2. Type of question: MULTIPLE_CHOICE (객관식) or TEXT (주관식).
+        3. Options if it's MULTIPLE_CHOICE (at least 4).
+        4. Correct answer (for MULTIPLE_CHOICE, it should be one of the options).
+        5. A brief explanation.
+        6. Recommended points (default 10).
+
+        TEXT:
+        ${text}
+      `,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              type: { type: Type.STRING, enum: ["MULTIPLE_CHOICE", "TEXT"] },
+              options: { 
+                type: Type.ARRAY, 
+                items: { type: Type.STRING } 
+              },
+              correctAnswer: { type: Type.STRING },
+              explanation: { type: Type.STRING },
+              points: { type: Type.NUMBER }
+            },
+            required: ["title", "type", "correctAnswer", "explanation", "points"]
+          }
+        }
+      }
+    });
+
+    const jsonStr = response.text;
+    if (!jsonStr) {
+      return res.json([]);
+    }
+    
+    const parsed = JSON.parse(jsonStr);
+    const questions = parsed.map((q: any, i: number) => ({
+      ...q,
+      id: `q-${i}-${Date.now()}`,
+      options: q.options || []
+    }));
+
+    res.json(questions);
+  } catch (error: any) {
+    console.error("Gemini Parse Error:", error);
+    res.status(500).json({ error: "Failed to parse text with AI" });
+  }
 });
 
 // Create Form API
