@@ -1,0 +1,6 @@
+{
+  "name": "Remix: Magic Google Form Generator",
+  "description": "Create Google Forms automatically from Markdown or text files with AI-powered question extraction, answers, and explanations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
