@@ -264,6 +264,13 @@ app.get("/api/forms/import/:formId", async (req, res) => {
   }
 });
 
+// Endpoint to provide client-side config at runtime
+app.get("/api/config", (req, res) => {
+  res.json({
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY
+  });
+});
+
 // Create Form API
 app.post("/api/forms/create", async (req, res) => {
   if (!req.session?.tokens) {

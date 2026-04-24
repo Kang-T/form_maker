@@ -1,9 +1,34 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Question } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+let aiInstance: GoogleGenAI | null = null;
+
+async function getAI(): Promise<GoogleGenAI> {
+  if (aiInstance) return aiInstance;
+  
+  let key: string | undefined = undefined;
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) {
+      key = process.env.GEMINI_API_KEY;
+    }
+  } catch(e) {}
+  
+  if (!key) {
+    const res = await fetch("/api/config");
+    const data = await res.json();
+    key = data.GEMINI_API_KEY;
+  }
+  
+  if (!key) {
+    throw new Error("GEMINI_API_KEY is not set on the server.");
+  }
+  
+  aiInstance = new GoogleGenAI({ apiKey: key });
+  return aiInstance;
+}
 
 export async function extractQuestionsFromText(text: string): Promise<Question[]> {
+  const ai = await getAI();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `
